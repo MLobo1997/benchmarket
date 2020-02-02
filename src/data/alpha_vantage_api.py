@@ -24,6 +24,7 @@ def get_weekly_data(symbol: str, api_key: str) -> pd.DataFrame:
         pd.DataFrame(response.json()["Weekly Adjusted Time Series"])
         .astype(float)
         .transpose()
+        .rename(mapper=lambda x: x[3:], axis=1)  # standardizes column names
     )
 
     return data
