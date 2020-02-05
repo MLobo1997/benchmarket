@@ -2,12 +2,20 @@ from datetime import datetime
 import pandas as pd
 
 
-def return_by_year(
+def compute_return(open_value, close_value, in_percentage):
+    growth = (close_value - open_value) / open_value
+    if in_percentage:
+        growth = 100 * growth
+    return growth
+
+
+def analyze_returns(
     data: pd.DataFrame,
     minimum_nr_of_weeks: int = None,
+    in_percentage: bool = False,
     open_col: str = "open",
     close_col: str = "close",
-    growth_col: str = "growth (%)",
+    growth_col: str = "growth",
 ) -> pd.DataFrame:
     """Returns a dataframe representing the returns of a stock year by year.
 
@@ -15,9 +23,6 @@ def return_by_year(
     ----------
     minimum_nr_of_weeks: The minimum number of weeks present in the data to display a year. If None, all years will be displayed
     """
-    minimum_nr_of_weeks = None
-    open_col = "open"
-    close_col = "close"
     if minimum_nr_of_weeks is not None:
         count_per_year = (
             data.iloc[:, 0]
@@ -39,5 +44,9 @@ def return_by_year(
             current_year = dt.year
         previous_open_val = open_val
     result.loc[current_year, open_col] = previous_open_val
-    result[growth_col] = 100 * (result[close_col] - result[open_col]) / result[open_col]
+    result[growth_col] = compute_return(
+        open_value=result[open_col],
+        close_value=result[close_col],
+        in_percentage=in_percentage,
+    )
     return result
