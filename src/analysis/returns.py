@@ -9,7 +9,7 @@ def compute_return(open_value, close_value, in_percentage):
     return growth
 
 
-def analyze_returns(
+def get_returns_by_year(
     data: pd.DataFrame,
     minimum_nr_of_weeks: int = None,
     in_percentage: bool = False,
@@ -49,4 +49,40 @@ def analyze_returns(
         close_value=result[close_col],
         in_percentage=in_percentage,
     )
+    return result
+
+
+def get_continuous_return(
+    data: pd.DataFrame,
+    from_datetime: datetime = None,
+    until_datetime: datetime = None,
+    in_percentage: bool = False,
+    open_col: str = "open",
+    close_col: str = "close",
+    dividend_col: str = "dividend amount",
+) -> dict:
+    """Returns a dict with the growth returns, the dividend returns/amount and the total returns.
+    """
+    result = {}
+    result[close_col] = None
+    dividend_key = "total " + dividend_col
+    result[dividend_key] = 0
+    for ((date, open_value), close_value), dividend in zip(
+        zip(data[open_col].items(), data[close_col]), data[dividend_col]
+    ):
+        dt = datetime.strptime(date, "%Y-%m-%d")
+        if until_datetime is not None and dt > until_datetime:
+            continue
+        if result[close_col] is None:
+            result[close_col] = close_value
+        if from_datetime is not None and dt < from_datetime:
+            print(dt)
+            break
+        result[open_col] = open_value
+        result[dividend_key] += dividend
+        result["return"] = compute_return(
+            open_value=result[open_col],
+            close_value=result[close_col],
+            in_percentage=in_percentage,
+        )
     return result
