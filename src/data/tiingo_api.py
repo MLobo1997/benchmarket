@@ -52,5 +52,6 @@ def get_historical_data(
         .drop(axis=0, index="date")
         .transpose()
         .rename(mapper=column_names_map, axis=1)
+        .sort_index(ascending=False)
     )
     return data
