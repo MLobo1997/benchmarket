@@ -76,9 +76,10 @@ def get_continuous_return(
     result[close_col] = None
     dividend_key = "total " + dividend_col
     result[dividend_key] = 0
-    for ((date, open_value), close_value), dividend in zip(
-        zip(data[open_col].items(), data[close_col]), data[dividend_col]
-    ):
+    for date, row in data.iterrows():
+        open_value = row[open_col]
+        close_value = row[close_col]
+        dividend = row[dividend_col]
         dt = datetime.strptime(date, "%Y-%m-%d")
         if until_datetime is not None and dt > until_datetime:
             continue
