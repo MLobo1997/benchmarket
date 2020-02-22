@@ -1,6 +1,7 @@
 from datetime import datetime
 import pandas as pd
 from src.data import column_names
+from src.data import stocks
 
 
 def compute_return(open_value, close_value, in_percentage):
@@ -96,3 +97,64 @@ def get_continuous_return(
             in_percentage=in_percentage,
         )
     return result
+
+
+def compare_stocks(
+    baseline_symbol: str,
+    targets_symbols: list,
+    minimum_nr_of_months: int,
+    subtract_returns_to_baseline: bool,
+    api_key: str,
+    growth_col: str = "growth",
+) -> pd.DataFrame:
+    baseline_data = stocks.get_historical_data(baseline_symbol, api_key=api_key)
+    targets_data = [
+        stocks.get_historical_data(symbol, api_key=api_key)
+        for symbol in targets_symbols
+    ]
+    min_date = baseline_data.index[-1]
+    for data in targets_data:
+        date = data.index[-1]
+        if date > min_date:
+            min_date = date
+
+    filter_indexes = baseline_data.index >= min_date
+    baseline_data = baseline_data[filter_indexes]
+
+    for idx in range(len(targets_data)):
+        filter_indexes = targets_data[idx].index >= min_date
+        targets_data[idx] = targets_data[idx][filter_indexes]
+
+    baseline_returns = (
+        get_returns_by_year(baseline_data, minimum_nr_of_months=minimum_nr_of_months),
+        get_continuous_return(baseline_data)["return"],
+    )
+
+    targets_returns = [
+        (
+            symbol,
+            get_returns_by_year(data, minimum_nr_of_months=minimum_nr_of_months),
+            get_continuous_return(data)["return"],
+        )
+        for symbol, data in zip(targets_symbols, targets_data)
+    ]
+    targets_returns.sort(key=lambda tup: tup[2], reverse=True)
+
+    continues_returns = {}
+    continues_returns["baseline"] = baseline_returns[1]
+    continues_returns["targets"] = [(x[0], x[2]) for x in targets_returns]
+
+    returns_by_year = pd.DataFrame(
+        columns=[baseline_symbol] + [target[0] for target in targets_returns]
+    )
+
+    for year, row in baseline_returns[0].iterrows():
+        baseline_growth = row[growth_col]
+        returns_by_year.loc[year, baseline_symbol] = baseline_growth
+        for target in targets_returns:
+            growth = target[1].loc[year, growth_col]
+            if subtract_returns_to_baseline:
+                growth = growth - baseline_growth
+            returns_by_year.loc[year, target[0]] = growth
+
+    return continues_returns, returns_by_year
