@@ -106,7 +106,7 @@ def compare_stocks(
     subtract_returns_to_baseline: bool,
     api_key: str,
     growth_col: str = "growth",
-) -> pd.DataFrame:
+) -> tuple:
     baseline_data = stocks.get_historical_data(baseline_symbol, api_key=api_key)
     targets_data = [
         stocks.get_historical_data(symbol, api_key=api_key)
@@ -140,9 +140,9 @@ def compare_stocks(
     ]
     targets_returns.sort(key=lambda tup: tup[2], reverse=True)
 
-    continues_returns = {}
-    continues_returns["baseline"] = baseline_returns[1]
-    continues_returns["targets"] = [(x[0], x[2]) for x in targets_returns]
+    continuous_returns = {}
+    continuous_returns["baseline"] = baseline_returns[1]
+    continuous_returns["targets"] = [(x[0], x[2]) for x in targets_returns]
 
     returns_by_year = pd.DataFrame(
         columns=[baseline_symbol] + [target[0] for target in targets_returns]
@@ -157,4 +157,21 @@ def compare_stocks(
                 growth = growth - baseline_growth
             returns_by_year.loc[year, target[0]] = growth
 
-    return continues_returns, returns_by_year
+    median_yearly_returns = []
+    avg_yearly_returns = []
+    beat_the_market_ratios = []
+    for column in returns_by_year.iloc[:, 1:]:
+        median_yearly_returns.append((column, returns_by_year[column].median()))
+        avg_yearly_returns.append((column, returns_by_year[column].mean()))
+        beat_the_market_ratios.append((column, (returns_by_year[column] >= 0).mean()))
+    median_yearly_returns.sort(key=lambda x: x[1], reverse=True)
+    avg_yearly_returns.sort(key=lambda x: x[1], reverse=True)
+    beat_the_market_ratios.sort(key=lambda x: x[1], reverse=True)
+
+    return (
+        continuous_returns,
+        returns_by_year,
+        median_yearly_returns,
+        avg_yearly_returns,
+        beat_the_market_ratios,
+    )
