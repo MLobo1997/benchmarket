@@ -1,3 +1,9 @@
+# Disclaimer
+
+If you know anything about financial markets, you should know that past returns are not a good predictor of future returns. This little project was done for research only, do not use it as a guide for your financial decisions.
+
+# Benchmarket
+
 ```python
 %load_ext autoreload
 from src.data import stocks
@@ -12,7 +18,7 @@ API_KEY = ""
 ```
 
 # Select the securities you want to compare
-* The baseline symbol is the ticker for the security you mostly want to compare others (the targets) with. It is designed to be some market index, in order to be able to conclude how consistently the target securities have (or not) "beat the market". The ITOT symbol is from an ETF that indexes stock from the whole world.
+* The baseline symbol is the ticker for the security you mostly want to compare others (the targets) with. It is designed to be some market index, in order to be able to conclude how consistently the target securities have (or not) "beat the market". The ITOT symbol is from an total-market ETF for the US.
 * `minimum_nr_of_months` is the minimum number of months of data a security must have in a year so that the year is accounted for. E.g: if some fund was created in july 1997, and `minimum_nr_of_months` is 6, then the year 1997 won't be analyzed.
 * if `subtract_returns_to_baseline` is set to `True` then all the target securities yearly growths are subtracted to baseline value of the corresponding year, so that clearer insights on on yearly performance are obtained
 
