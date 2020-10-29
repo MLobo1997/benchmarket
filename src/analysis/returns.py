@@ -107,6 +107,8 @@ def compare_stocks(
     api_key: str,
     growth_col: str = "growth",
 ) -> tuple:
+    """Compares the target securities with the baseline security.
+    """
     baseline_data = stocks.get_historical_data(baseline_symbol, api_key=api_key)
     targets_data = [
         stocks.get_historical_data(symbol, api_key=api_key)
